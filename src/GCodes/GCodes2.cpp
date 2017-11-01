@@ -167,6 +167,10 @@ bool GCodes::HandleGcode(GCodeBuffer& gb, StringRef& reply)
 			switch(sparam)
 			{
 			case 0:		// probe and save height map
+        if(doubleTapProbe){
+          heightErrorCheck = -999.0;
+          currentHeightErrorChecks = 0;
+        }
 				error = ProbeGrid(gb, reply);
 				break;
 
