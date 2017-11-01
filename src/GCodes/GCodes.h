@@ -420,6 +420,13 @@ private:
 	bool displayDeltaNotHomedWarning;			// True if we need to display a 'attempt to move before homing on a delta printer' message
 	char filamentToLoad[FilamentNameLength];	// Name of the filament being loaded
 
+  // SeeMeCNC added vars
+  float heightErrorCheck = -999.0;
+  float heightErrorTolerance = 0.05;
+  bool doubleTapProbe = false;
+  int maxHeightErrorChecks = 5;
+  int currentHeightErrorChecks = 0;
+
 	static constexpr const char* BED_EQUATION_G = "bed.g";
 	static constexpr const char* RESUME_G = "resume.g";
 	static constexpr const char* CANCEL_G = "cancel.g";

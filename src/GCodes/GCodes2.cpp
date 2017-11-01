@@ -214,6 +214,11 @@ bool GCodes::HandleGcode(GCodeBuffer& gb, StringRef& reply)
 		// which means that no gcode source other than the one that executed G32 is allowed to jog the Z axis.
 		UnlockAll(gb);
 
+    if(doubleTapProbe){
+      heightErrorCheck = -999.0;
+      currentHeightErrorChecks = 0;
+    }
+
 		DoFileMacro(gb, BED_EQUATION_G, true);	// Try to execute bed.g
 		break;
 
@@ -1686,6 +1691,30 @@ bool GCodes::HandleMcode(GCodeBuffer& gb, StringRef& reply)
 		break;
 
 		// For case 226, see case 25
+
+  case 270: // M270 P1 S0.05
+    if (gb.Seen('P')){
+      int probeEnabled = gb.GetIValue();
+      if(probeEnabled == 1){
+        doubleTapProbe = true;
+      }else{
+        doubleTapProbe = false;
+      }
+    }
+    if (gb.Seen('S')){
+      heightErrorTolerance = gb.GetFValue();
+    }
+    if (gb.Seen('F')){
+      maxHeightErrorChecks = gb.GetIValue();
+    }
+    if(!gb.Seen('I')){
+      if(doubleTapProbe){
+        reply.printf("Probe double tap is Enabled with %.2fmm tolerance allowed (%d retries)", heightErrorTolerance, maxHeightErrorChecks);
+      }else{
+        reply.printf("Probe double tap is Disabled. Tolerance when enabled: %.2fmm (%d retries)", heightErrorTolerance, maxHeightErrorChecks);
+      }
+    }
+    break;
 
 	case 280:	// Servos
 		if (gb.Seen('P'))

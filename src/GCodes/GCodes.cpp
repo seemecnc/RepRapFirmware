@@ -965,20 +965,59 @@ void GCodes::Spin()
 						SetAxisIsHomed(Z_AXIS);
 						heightError = 0.0;
 					}
-					reprap.GetMove().SetZBedProbePoint(g30ProbePointIndex, heightError, true, probingError);
 
-					// Move back up to the dive height before we change anything, in particular before we adjust leadscrews
-					moveBuffer.moveType = 0;
-					moveBuffer.endStopsToCheck = 0;
-					moveBuffer.usePressureAdvance = false;
-					moveBuffer.filePos = noFilePosition;
-					moveBuffer.coords[Z_AXIS] = platform.GetZProbeStartingHeight();
-					moveBuffer.feedRate = platform.GetZProbeTravelSpeed();
-					moveBuffer.xAxes = DefaultXAxisMapping;
-					moveBuffer.yAxes = DefaultYAxisMapping;
-					segmentsLeft = 1;
-					gb.AdvanceState();
-				}
+          if(doubleTapProbe){
+            if(heightErrorCheck > -900){ // Check heightError agaist last probe
+              float heightErrorDiff = heightErrorCheck - heightError;
+              if(heightErrorDiff < 0){ heightErrorDiff *= -1; }
+              if(heightErrorDiff > heightErrorTolerance){
+                if(currentHeightErrorChecks >= maxHeightErrorChecks){
+                  probingError = true;
+                  platform.Message(GENERIC_MESSAGE, "Error: Too many probe height verification failures.\n");
+                  currentHeightErrorChecks = 0;
+                  heightErrorCheck = -999;
+                }else{
+                  platform.MessageF(GENERIC_MESSAGE, "Error: Height Error Diff (%.2f) above maximum tolerance (%.2f). Retrying.\n", heightErrorDiff, heightErrorTolerance);
+                  heightErrorCheck = heightError;
+                  gb.SetState(GCodeState::probingAtPoint0);
+                }
+              }else{
+                heightError = (heightError + heightErrorCheck) / 2;
+                platform.MessageF(GENERIC_MESSAGE, "Height Error: %.3f  Height Error Diff: %.3f\n", heightError, heightErrorDiff);
+                heightErrorCheck = -999;
+                currentHeightErrorChecks = 0;
+                reprap.GetMove().SetZBedProbePoint(g30ProbePointIndex, heightError, true, probingError);
+                // Move back up to the dive height before we change anything, in particular before we adjust leadscrews
+                moveBuffer.moveType = 0;
+                moveBuffer.endStopsToCheck = 0;
+                moveBuffer.usePressureAdvance = false;
+                moveBuffer.filePos = noFilePosition;
+                moveBuffer.coords[Z_AXIS] = platform.GetZProbeStartingHeight();
+                moveBuffer.feedRate = platform.GetZProbeTravelSpeed();
+                moveBuffer.xAxes = DefaultXAxisMapping;
+                moveBuffer.yAxes = DefaultYAxisMapping;
+                segmentsLeft = 1;
+                gb.AdvanceState();
+              }
+            }else{// Save the current hightError and re-probe
+              heightErrorCheck = heightError;
+              gb.SetState(GCodeState::probingAtPoint0);
+            }
+          }else{
+            reprap.GetMove().SetZBedProbePoint(g30ProbePointIndex, heightError, true, probingError);
+            // Move back up to the dive height before we change anything, in particular before we adjust leadscrews
+            moveBuffer.moveType = 0;
+            moveBuffer.endStopsToCheck = 0;
+            moveBuffer.usePressureAdvance = false;
+            moveBuffer.filePos = noFilePosition;
+            moveBuffer.coords[Z_AXIS] = platform.GetZProbeStartingHeight();
+            moveBuffer.feedRate = platform.GetZProbeTravelSpeed();
+            moveBuffer.xAxes = DefaultXAxisMapping;
+            moveBuffer.yAxes = DefaultYAxisMapping;
+            segmentsLeft = 1;
+            gb.AdvanceState();
+          }
+        }
 			}
 			break;
 
