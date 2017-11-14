@@ -719,20 +719,21 @@ void GCodes::Spin()
           if(heightErrorCheck > -900){ // Check heightError agaist last probe
             float heightErrorDiff = heightErrorCheck - heightError;
             if(heightErrorDiff < 0){ heightErrorDiff *= -1; }
-            if(heightErrorDiff > heightErrorTolerance){
+            if(heightErrorDiff >= heightErrorTolerance){
               if(currentHeightErrorChecks >= maxHeightErrorChecks){
                 platform.Message(GENERIC_MESSAGE, "Error: Too many probe height verification failures.\n");
                 currentHeightErrorChecks = 0;
                 heightErrorCheck = -999;
                 break;
               }else{
+                currentHeightErrorChecks++;
                 platform.MessageF(GENERIC_MESSAGE, "Error: Height Error Diff (%.2f) above maximum tolerance (%.2f). Retrying.\n", heightErrorDiff, heightErrorTolerance);
                 heightErrorCheck = heightError;
                 gb.SetState(GCodeState::gridProbing1);
               }
             }else{
               heightError = (heightError + heightErrorCheck) / 2;
-              platform.MessageF(GENERIC_MESSAGE, "Height Error: %.3f  Height Error Diff: %.3f\n", heightError, heightErrorDiff);
+              debugPrintf("Height Error: %.3f  Height Error Diff: %.3f\n", heightError, heightErrorDiff);
               heightErrorCheck = -999;
               currentHeightErrorChecks = 0;
               reprap.GetMove().AccessBedProbeGrid().SetGridHeight(gridXindex, gridYindex, heightError);
@@ -1016,13 +1017,14 @@ void GCodes::Spin()
                   currentHeightErrorChecks = 0;
                   heightErrorCheck = -999;
                 }else{
+                  currentHeightErrorChecks++;
                   platform.MessageF(GENERIC_MESSAGE, "Error: Height Error Diff (%.2f) above maximum tolerance (%.2f). Retrying.\n", heightErrorDiff, heightErrorTolerance);
                   heightErrorCheck = heightError;
                   gb.SetState(GCodeState::probingAtPoint0);
                 }
               }else{
                 heightError = (heightError + heightErrorCheck) / 2;
-                platform.MessageF(GENERIC_MESSAGE, "Height Error: %.3f  Height Error Diff: %.3f\n", heightError, heightErrorDiff);
+                debugPrintf("Height Error: %.3f  Height Error Diff: %.3f\n", heightError, heightErrorDiff);
                 heightErrorCheck = -999;
                 currentHeightErrorChecks = 0;
                 reprap.GetMove().SetZBedProbePoint(g30ProbePointIndex, heightError, true, probingError);
