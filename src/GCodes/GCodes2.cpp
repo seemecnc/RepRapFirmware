@@ -1016,7 +1016,9 @@ bool GCodes::HandleMcode(GCodeBuffer& gb, StringRef& reply)
 
 			// M109 implies waiting for temperature to be reached, so it doesn't make sense unless the tool has been selected.
 			// Sadly, many slicers use M109 without selecting the tool first. So we select it here if necessary.
-			if (tool != reprap.GetCurrentTool())
+			// Removing this to play nice with Cura and SeeMeCNC Printers
+      /*
+      if (tool != reprap.GetCurrentTool())
 			{
 				if (!LockMovementAndWaitForStandstill(gb))
 				{
@@ -1030,7 +1032,8 @@ bool GCodes::HandleMcode(GCodeBuffer& gb, StringRef& reply)
 			else
 			{
 				gb.SetState(GCodeState::m109ToolChangeComplete);
-			}
+			}*/
+      gb.SetState(GCodeState::m109ToolChangeComplete);
 		}
 		break;
 
