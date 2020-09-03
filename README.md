@@ -22,3 +22,4 @@ For documentation on supported gcodes and configuration, see https://duet3d.com/
 For compiling from source, see separate file BuildInstructions.md.
 
 Licence: GPLv3, see http://www.gnu.org/licenses/gpl-3.0.en.html
+
